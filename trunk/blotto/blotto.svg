@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ onload="BLOTTO_APP.onLoad();"> 
+	<script><![CDATA[
+
+	var BLOTTO_APP = {};
+	
+	BLOTTO_APP.onLoad = function() {
+		
+	};
+	]]></script>
+	<g id="blottoFrame">
+		<rect id="frameBackground" x="0" y="0" width="640" height="480"
+		 stroke-width="0" fill="#557755" />
+		<text id="stepTxt" x="320" y="40" fill="#cccccc"
+		 font-size="20" font-family="sans-serif" text-anchor="middle"> 
+		Colonel Blotto
+		</text> 
+		<g id="gameArea" onmousedown="BLOTTO_APP.onMouseDown(evt);"
+		 transform="translate(20,60)">
+			<rect id="gaBackground" x="0" y="0" width="600" height="380"
+			 stroke-width="0" fill="#000000" />
+		</g>
+	</g>
+</svg>
