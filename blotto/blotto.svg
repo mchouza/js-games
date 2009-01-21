@@ -4,34 +4,79 @@
 	<script><![CDATA[
 	var BLOTTO_APP = {};
 	
-	BLOTTO_APP.states = {
-		asigningTroops: 1,
-		fight: 2,
-		result: 3,
-		invalid: 4
+	BLOTTO_APP.DS_FILL_COLOR = '#a55';
+	BLOTTO_APP.DS_STROKE_COLOR = '#633';
+	
+	BLOTTO_APP.LS_FILL_COLOR = '#55a';
+	BLOTTO_APP.LS_STROKE_COLOR = '#336';
+	
+	BLOTTO_APP.SCALE_FACTOR = 3;
+	BLOTTO_APP.SVG_NS = 'http://www.w3.org/2000/svg';
+	
+	BLOTTO_APP.sides = {
+		light : 0,
+		dark: 1
 	};
+	
+	BLOTTO_APP.states = {
+		asigningTroops: 0,
+		fight: 1,
+		result: 2,
+		invalid: 3
+	};
+	
+	BLOTTO_APP.units = [];
 	
 	BLOTTO_APP.onLoad = function() {
-		BLOTTO_APP.currentState = this.states.asigningTroops;
+		this.currentState = this.states.asigningTroops;
+		area = document.getElementById('area');
+		for (var i = 0; i < 10; i++) {
+			this.units[i] = this.makeUnit(i * 31 + 35.5, 250,
+				10, this.sides.light, area);
+		}
+		for (var i = 0; i < 10; i++) {
+			this.units[i] = this.makeUnit(i * 31 + 35.5, 50,
+				10, this.sides.dark, area);
+		}
 	};
 	
-	BLOTTO_APP.onMouseDown = function(evt) {
-		this.currentState++;
-		this.currentState %= this.states.invalid;
-		alert(this.currentState);
+	BLOTTO_APP.makeUnit = function(x, y, n, side, symbolOwner) {
+		newUnit = {};
+		newUnit.x = x;
+		newUnit.y = y;
+		newUnit.n = n;
+		newUnit.side = side;
+		newUnit.symbol = document.createElementNS(this.SVG_NS, 'circle');
+		symbolOwner.appendChild(newUnit.symbol);
+		newUnit.symbol.setAttribute('stroke-width', '2');
+		newUnit.update = function() {
+			this.symbol.setAttribute('cx', this.x);
+			this.symbol.setAttribute('cy', this.y);
+			this.symbol.setAttribute('r', Math.sqrt(this.n) * 
+				BLOTTO_APP.SCALE_FACTOR);
+			if (side == BLOTTO_APP.sides.light) {
+				this.symbol.setAttribute('stroke', BLOTTO_APP.LS_STROKE_COLOR);
+				this.symbol.setAttribute('fill', BLOTTO_APP.LS_FILL_COLOR);
+			}
+			else { // If they aren't with us, they're against us... :-P
+				this.symbol.setAttribute('stroke', BLOTTO_APP.DS_STROKE_COLOR);
+				this.symbol.setAttribute('fill', BLOTTO_APP.DS_FILL_COLOR);
+			}
+		};
+		newUnit.update();
 	};
+	
 	]]></script>
 	<g id="frame">
-		<rect id="frameBackground" x="0" y="0" width="320" height="340"
+		<rect id="frameBackground" x="0" y="0" width="370" height="340"
 		 stroke-width="0" fill="#777" />
-		<text id="stepTxt" x="160" y="22" fill="#ccc"
+		<text id="stepTxt" x="185" y="22" fill="#ccc"
 		 font-size="16" font-family="sans-serif" font-weight="bold" 
 		 text-anchor="middle"> 
 		Colonel Blotto
 		</text> 
-		<g id="area" onmousedown="BLOTTO_APP.onMouseDown(evt);"
-		 transform="translate(10,30)">
-			<rect id="areaBG" x="0" y="0" width="300" height="300"
+		<g id="area" transform="translate(10,30)">
+			<rect id="areaBG" x="0" y="0" width="350" height="300"
 			 stroke-width="0" fill="#000000" />
 		</g>
 	</g>
