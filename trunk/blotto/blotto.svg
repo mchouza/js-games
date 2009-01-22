@@ -30,6 +30,8 @@
 	BLOTTO_APP.onLoad = function() {
 		this.currentState = this.states.asigningTroops;
 		area = document.getElementById('area');
+		bg = document.getElementById('background');
+		this.makeBGTopography(bg);
 		for (var i = 0; i < 10; i++) {
 			this.units[i] = this.makeUnit(i * 31 + 35.5, 250,
 				10, this.sides.light, area);
@@ -38,6 +40,39 @@
 			this.units[i] = this.makeUnit(i * 31 + 35.5, 50,
 				10, this.sides.dark, area);
 		}
+	};
+	
+	BLOTTO_APP.makeBGTopography = function(bg) {
+		// first, makes a fractal heightmap
+		heightMap = [];
+		for (var i = 0; i < 32 + 1; i++) {
+			heightMap[i] = [];
+		}
+		heightMap[0][0] = heightMap[0][33-1] = heightMap[33-1][0] = 
+			heightMap[32][32] = 0;
+		var recFractal = function(left, top, right, bottom, delta, hm) {
+			if (right - left == 1) {
+				return;
+			}
+			cx = (left + right) / 2;
+			cy = (top + bottom) / 2;
+			alert('cy ' + cy + ' cx ' + cx + ' left ' + left + ' right ' + right + ' top ' + top + ' bottom ' + bottom);
+			// gets the central point height
+			hm[cy][cx] = (Math.random() - 0.5) * delta + 
+				(hm[top][left] + hm[top][right] + hm[bottom][left] + 
+				hm[bottom][right]) / 4;
+			// the edges are average
+			hm[cy][left] = (hm[top][left] + hm[bottom][left]) / 2;
+			hm[cy][right] = (hm[top][right] + hm[bottom][right]) / 2;
+			hm[top][cx] = (hm[top][left] + hm[top][right]) / 2;
+			hm[bottom][cx] = (hm[bottom][left] + hm[bottom][right]) / 2;
+			// recursive phase
+			recFractal(left, top, cx, cy, delta * 0.7, hm);
+			recFractal(left, cy, cx, bottom, delta * 0.7, hm);
+			recFractal(cx, top, right, cy, delta * 0.7, hm);
+			recFractal(cx, cy, right, bottom, delta * 0.7, hm);
+		}
+		recFractal(0, 0, 32, 32, 1, heightMap);
 	};
 	
 	BLOTTO_APP.makeUnit = function(x, y, n, side, symbolOwner) {
@@ -76,8 +111,10 @@
 		Colonel Blotto
 		</text> 
 		<g id="area" transform="translate(10,30)">
-			<rect id="areaBG" x="0" y="0" width="350" height="300"
-			 stroke-width="0" fill="#000000" />
+			<g id="background">
+				<rect id="areaBGRect" x="0" y="0" width="350" height="300"
+				 stroke-width="0" fill="#000000" />
+			</g>
 		</g>
 	</g>
 </svg>
