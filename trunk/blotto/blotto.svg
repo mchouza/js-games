@@ -75,10 +75,150 @@
 		}
 		recFractal(0, 0, 32, 32, 1, heightMap);
 		
-		// 2) gets contours as line segments
-		// FIXME: Implement
+		// FIXME: For testing only
+		/*
+		var maxHeight = heightMap[0][0];
+		var minHeight = maxHeight;
+		for (var i = 0; i < 32 + 1; i++) {
+			for (var j = 0; j < 32 + 1; j++) {
+				if (heightMap[i][j] > maxHeight) {
+					maxHeight = heightMap[i][j];
+				}
+				if (heightMap[i][j] < minHeight) {
+					minHeight = heightMap[i][j];
+				}
+			}
+		}
+		for (var i = 0; i < 32; i++) {
+			for (var j = 0; j < 32; j++) {
+				var avgHeight = (heightMap[i][j] + heightMap[i+1][j] + 
+					heightMap[i][j+1] + heightMap[i+1][j+1]) / 4;
+				var grayLevelString = Math.floor(256 * 
+					(avgHeight - minHeight) / 
+					(maxHeight - minHeight)).toString(16);
+				var colorString = '#' + grayLevelString + grayLevelString +
+					grayLevelString;
+				var r = document.createElementNS(BLOTTO_APP.SVG_NS, 'rect');
+				r.setAttribute('x', j * 7);
+				r.setAttribute('y', i * 7);
+				r.setAttribute('width', 7);
+				r.setAttribute('height', 7);
+				r.setAttribute('fill', colorString);
+				bg.appendChild(r);
+			}
+		}
+		*/
 		
-		// 3) builds the paths that graphically represent the contours
+		// 2) rescales heights
+		var maxHeight = heightMap[0][0];
+		var minHeight = maxHeight;
+		for (var i = 0; i < 32 + 1; i++) {
+			for (var j = 0; j < 32 + 1; j++) {
+				if (heightMap[i][j] > maxHeight) {
+					maxHeight = heightMap[i][j];
+				}
+				if (heightMap[i][j] < minHeight) {
+					minHeight = heightMap[i][j];
+				}
+			}
+		}
+		for (var i = 0; i < 32 + 1; i++) {
+			for (var j = 0; j < 32 + 1; j++) {
+				heightMap[i][j] = (heightMap[i][j] - minHeight) / 
+					(maxHeight - minHeight);
+			}
+		}
+		
+		// 3) gets contours as line segments (it's not very elegant code, But It Works (TM))
+		var contourSegments = [];
+		var makeSegment = function(i1a, j1a, i1b, j1b, i2a, j2a, i2b, j2b, h) {
+			var h1a = heightMap[i1a][j1a];
+			var h1b = heightMap[i1b][j1b];
+			var h2a = heightMap[i2a][j2a];
+			var h2b = heightMap[i2b][j2b];
+			var lambda1 = (h - h1a) / (h1b - h1a);
+			var lambda2 = (h - h2a) / (h2b - h2a);
+			var i1int = i1a * lambda1 + i1b * (1 - lambda1);
+			var j1int = j1a * lambda1 + j1b * (1 - lambda1);
+			var i2int = i2a * lambda2 + i2b * (1 - lambda2);
+			var j2int = j2a * lambda2 + j2b * (1 - lambda2);
+			return [[i1int, j1int], [i2int, j2int]];
+		}
+		for (var c = 0; c <= 10; c++) {
+			var h = c * 0.095 + 0.01;
+			contourSegments[c] = [];
+			for (var i = 0; i < 32; i++) {
+				for (var j = 0; j < 32; j++) {
+					cellType = (heightMap[i][j] > h ? 1 : 0) +
+						(heightMap[i][j+1] > h ? 8 : 0) +
+						(heightMap[i+1][j+1] > h ? 4 : 0) +
+						(heightMap[i+1][j] > h ? 2 : 0);
+					switch (cellType) {
+					case 0:
+					case 15: // doesn't cross
+						break; 
+					case 1:
+					case 14: // crosses between (i, j) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i,j,i,j+1,i,j,i+1,j,h));
+						break;
+					case 2:
+					case 13: // crosses between (i, j+1) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i,j+1,i,j,i,j+1,i+1,j+1,h));
+						break;
+					case 8:
+					case 7: // crosses between (i+1, j+1) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i+1,j+1,i,j+1,i+1,j+1,i+1,j,h));
+						break;
+					case 4:
+					case 11: // crosses between (i+1, j) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i+1,j,i+1,j+1,i+1,j,i,j,h));
+						break;
+					case 9:
+					case 6: // crosses horizontally
+						contourSegments[c].push(
+							makeSegment(i,j,i+1,j,i,j+1,i+1,j+1,h));
+						break;
+					case 3:
+					case 12: // crosses vertically
+						contourSegments[c].push(
+							makeSegment(i,j,i,j+1,i+1,j,i+1,j+1,h));
+						break;
+					case 5:
+					case 10: // ambiguous, breaks the tie randomly
+						if (Math.random() < 0.5) {
+							contourSegments[c].push(
+								makeSegment(i,j,i,j+1,i,j,i+1,j,h));
+							contourSegments[c].push(
+								makeSegment(i+1,j+1,i,j+1,i+1,j+1,i+1,j,h));
+						}
+						else {
+							contourSegments[c].push(
+								makeSegment(i,j+1,i,j,i,j+1,i+1,j+1,h));
+							contourSegments[c].push(
+								makeSegment(i+1,j,i+1,j+1,i+1,j,i,j,h));
+						}
+					}
+				}
+			}
+		}
+		
+		// FIXME: Only for debugging
+		for (var c = 0; c <= 10; c++) {
+			for (var i = 0; i < contourSegments[c].length; i++) {
+				var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
+				l.setAttribute('x1', contourSegments[c][i][0][0]);
+				l.setAttribute('y1', contourSegments[c][i][0][1]);
+				l.setAttribute('x2', contourSegments[c][i][1][0]);
+				l.setAttribute('y2', contourSegments[c][i][1][1]);
+				bg.appendChild(l);
+			}
+		}
+		
+		// 4) builds the paths that graphically represent the contours
 		// FIXME: Implement
 	};
 	
