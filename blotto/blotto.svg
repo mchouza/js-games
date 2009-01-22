@@ -43,7 +43,7 @@
 	};
 	
 	BLOTTO_APP.makeBGTopography = function(bg) {
-		// first, makes a fractal heightmap
+		// 1) makes a fractal heightmap
 		heightMap = [];
 		for (var i = 0; i < 32 + 1; i++) {
 			heightMap[i] = [];
@@ -54,9 +54,10 @@
 			if (right - left == 1) {
 				return;
 			}
-			cx = (left + right) / 2;
-			cy = (top + bottom) / 2;
-			alert('cy ' + cy + ' cx ' + cx + ' left ' + left + ' right ' + right + ' top ' + top + ' bottom ' + bottom);
+			var cx = (left + right) / 2;
+			var cy = (top + bottom) / 2;
+			// FIXME: For debugging
+			//alert('cy ' + cy + ' cx ' + cx + ' left ' + left + ' right ' + right + ' top ' + top + ' bottom ' + bottom);
 			// gets the central point height
 			hm[cy][cx] = (Math.random() - 0.5) * delta + 
 				(hm[top][left] + hm[top][right] + hm[bottom][left] + 
@@ -73,6 +74,12 @@
 			recFractal(cx, cy, right, bottom, delta * 0.7, hm);
 		}
 		recFractal(0, 0, 32, 32, 1, heightMap);
+		
+		// 2) gets contours as line segments
+		// FIXME: Implement
+		
+		// 3) builds the paths that graphically represent the contours
+		// FIXME: Implement
 	};
 	
 	BLOTTO_APP.makeUnit = function(x, y, n, side, symbolOwner) {
