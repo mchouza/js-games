@@ -4,6 +4,8 @@
 	<script><![CDATA[
 	var BLOTTO_APP = {};
 	
+	BLOTTO_APP.CONT_NUM = 10;
+	
 	BLOTTO_APP.DS_FILL_COLOR = '#a55';
 	BLOTTO_APP.DS_STROKE_COLOR = '#633';
 	
@@ -14,13 +16,24 @@
 	BLOTTO_APP.SVG_NS = 'http://www.w3.org/2000/svg';
 	
 	BLOTTO_APP.debug_alert_n = function() {
-		var counter = 3;
+		var counter = 4;
 		return function(msg) {
 			if (counter-- > 0) {
 				alert(msg);
 			}
 		}
 	}();
+	
+	BLOTTO_APP.randomGen = {
+		x: (new Date()).valueOf(),
+		seed: function(newSeed) {
+			this.x = newSeed;
+		},
+		random: function() {
+			this.x = (this.x * 1664525 + 1013904223) & ~0;
+			return this.x / Math.pow(2, 32);
+		}
+	};
 	
 	BLOTTO_APP.sides = {
 		light : 0,
@@ -68,19 +81,23 @@
 			// FIXME: For debugging
 			//alert('cy ' + cy + ' cx ' + cx + ' left ' + left + ' right ' + right + ' top ' + top + ' bottom ' + bottom);
 			// gets the central point height
-			hm[cy][cx] = (Math.random() - 0.5) * delta + 
+			hm[cy][cx] = (BLOTTO_APP.randomGen.random() - 0.5) * delta + 
 				(hm[top][left] + hm[top][right] + hm[bottom][left] + 
 				hm[bottom][right]) / 4;
 			// the edges are average
-			hm[cy][left] = (hm[top][left] + hm[bottom][left]) / 2;
-			hm[cy][right] = (hm[top][right] + hm[bottom][right]) / 2;
-			hm[top][cx] = (hm[top][left] + hm[top][right]) / 2;
-			hm[bottom][cx] = (hm[bottom][left] + hm[bottom][right]) / 2;
+			hm[cy][left] = (hm[top][left] + hm[bottom][left]) / 2 +
+				(BLOTTO_APP.randomGen.random() - 0.5) * delta;
+			hm[cy][right] = (hm[top][right] + hm[bottom][right]) / 2 +
+				(BLOTTO_APP.randomGen.random() - 0.5) * delta;
+			hm[top][cx] = (hm[top][left] + hm[top][right]) / 2 +
+				(BLOTTO_APP.randomGen.random() - 0.5) * delta;
+			hm[bottom][cx] = (hm[bottom][left] + hm[bottom][right]) / 2 +
+				(BLOTTO_APP.randomGen.random() - 0.5) * delta;
 			// recursive phase
-			recFractal(left, top, cx, cy, delta * 0.7, hm);
-			recFractal(left, cy, cx, bottom, delta * 0.7, hm);
-			recFractal(cx, top, right, cy, delta * 0.7, hm);
-			recFractal(cx, cy, right, bottom, delta * 0.7, hm);
+			recFractal(left, top, cx, cy, delta * 0.5, hm);
+			recFractal(left, cy, cx, bottom, delta * 0.5, hm);
+			recFractal(cx, top, right, cy, delta * 0.5, hm);
+			recFractal(cx, cy, right, bottom, delta * 0.5, hm);
 		}
 		recFractal(0, 0, 32, 32, 1, heightMap);
 		
@@ -147,14 +164,14 @@
 			var h2b = heightMap[i2b][j2b];
 			var lambda1 = (h - h1a) / (h1b - h1a);
 			var lambda2 = (h - h2a) / (h2b - h2a);
-			var i1int = i1a * lambda1 + i1b * (1 - lambda1);
-			var j1int = j1a * lambda1 + j1b * (1 - lambda1);
-			var i2int = i2a * lambda2 + i2b * (1 - lambda2);
-			var j2int = j2a * lambda2 + j2b * (1 - lambda2);
+			var i1int = i1b * lambda1 + i1a * (1 - lambda1);
+			var j1int = j1b * lambda1 + j1a * (1 - lambda1);
+			var i2int = i2b * lambda2 + i2a * (1 - lambda2);
+			var j2int = j2b * lambda2 + j2a * (1 - lambda2);
 			return [[i1int, j1int], [i2int, j2int]];
 		};
-		for (var c = 0; c <= 10; c++) {
-			var h = c * 0.095 + 0.01;
+		for (var c = 0; c <= BLOTTO_APP.CONT_NUM; c++) {
+			var h = c * 0.1;
 			contourSegments[c] = [];
 			for (var i = 0; i < 32; i++) {
 				for (var j = 0; j < 32; j++) {
@@ -198,7 +215,7 @@
 						break;
 					case 5:
 					case 10: // ambiguous, breaks the tie randomly
-						if (Math.random() < 0.5) {
+						if (this.randomGen.random() < 0.5) {
 							contourSegments[c].push(
 								makeSegment(i,j,i,j+1,i,j,i+1,j,h));
 							contourSegments[c].push(
@@ -216,13 +233,13 @@
 		}
 		
 		// FIXME: Only for debugging
-		for (var c = 5; c <= 5; c++) {
+		for (var c = 0; c <= 10; c++) {
 			for (var i = 0; i < contourSegments[c].length; i++) {
 				var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
-				l.setAttribute('x1', contourSegments[c][i][0][0] * 7);
-				l.setAttribute('y1', contourSegments[c][i][0][1] * 7);
-				l.setAttribute('x2', contourSegments[c][i][1][0] * 7);
-				l.setAttribute('y2', contourSegments[c][i][1][1] * 7);
+				l.setAttribute('x1', contourSegments[c][i][0][0] * (350 / 32));
+				l.setAttribute('y1', contourSegments[c][i][0][1] * (350 / 32));
+				l.setAttribute('x2', contourSegments[c][i][1][0] * (350 / 32));
+				l.setAttribute('y2', contourSegments[c][i][1][1] * (350 / 32));
 				l.setAttribute('stroke', '#aaa');
 				l.setAttribute('stroke-width', '1');
 				bg.appendChild(l);
@@ -280,7 +297,7 @@
 	
 	]]></script>
 	<g id="frame">
-		<rect id="frameBackground" x="0" y="0" width="370" height="340"
+		<rect id="frameBackground" x="0" y="0" width="370" height="390"
 		 stroke-width="0" fill="#777" />
 		<text id="stepTxt" x="185" y="22" fill="#ccc"
 		 font-size="16" font-family="sans-serif" font-weight="bold" 
@@ -289,7 +306,7 @@
 		</text> 
 		<g id="area" transform="translate(10,30)">
 			<g id="background">
-				<rect id="areaBGRect" x="0" y="0" width="350" height="300"
+				<rect id="areaBGRect" x="0" y="0" width="350" height="350"
 				 stroke-width="0" fill="#000000" />
 			</g>
 		</g>
