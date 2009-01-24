@@ -78,13 +78,11 @@
 			}
 			var cx = (left + right) / 2;
 			var cy = (top + bottom) / 2;
-			// FIXME: For debugging
-			//alert('cy ' + cy + ' cx ' + cx + ' left ' + left + ' right ' + right + ' top ' + top + ' bottom ' + bottom);
 			// gets the central point height
 			hm[cy][cx] = (BLOTTO_APP.randomGen.random() - 0.5) * delta + 
 				(hm[top][left] + hm[top][right] + hm[bottom][left] + 
 				hm[bottom][right]) / 4;
-			// the edges are average
+			// gets the edges midpoint heights
 			hm[cy][left] = (hm[top][left] + hm[bottom][left]) / 2 +
 				(BLOTTO_APP.randomGen.random() - 0.5) * delta;
 			hm[cy][right] = (hm[top][right] + hm[bottom][right]) / 2 +
@@ -100,40 +98,6 @@
 			recFractal(cx, cy, right, bottom, delta * 0.5, hm);
 		}
 		recFractal(0, 0, 32, 32, 1, heightMap);
-		
-		// FIXME: For testing only
-		/*
-		var maxHeight = heightMap[0][0];
-		var minHeight = maxHeight;
-		for (var i = 0; i < 32 + 1; i++) {
-			for (var j = 0; j < 32 + 1; j++) {
-				if (heightMap[i][j] > maxHeight) {
-					maxHeight = heightMap[i][j];
-				}
-				if (heightMap[i][j] < minHeight) {
-					minHeight = heightMap[i][j];
-				}
-			}
-		}
-		for (var i = 0; i < 32; i++) {
-			for (var j = 0; j < 32; j++) {
-				var avgHeight = (heightMap[i][j] + heightMap[i+1][j] + 
-					heightMap[i][j+1] + heightMap[i+1][j+1]) / 4;
-				var grayLevelString = Math.floor(256 * 
-					(avgHeight - minHeight) / 
-					(maxHeight - minHeight)).toString(16);
-				var colorString = '#' + grayLevelString + grayLevelString +
-					grayLevelString;
-				var r = document.createElementNS(BLOTTO_APP.SVG_NS, 'rect');
-				r.setAttribute('x', j * 7);
-				r.setAttribute('y', i * 7);
-				r.setAttribute('width', 7);
-				r.setAttribute('height', 7);
-				r.setAttribute('fill', colorString);
-				bg.appendChild(r);
-			}
-		}
-		*/
 		
 		// 2) rescales heights
 		var maxHeight = heightMap[0][0];
@@ -231,40 +195,6 @@
 				}
 			}
 		}
-		
-		// FIXME: Only for debugging
-		/*
-		for (var c = 0; c <= 10; c++) {
-			for (var i = 0; i < contourSegments[c].length; i++) {
-				var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
-				l.setAttribute('x1', contourSegments[c][i][0][0] * (350 / 32));
-				l.setAttribute('y1', contourSegments[c][i][0][1] * (350 / 32));
-				l.setAttribute('x2', contourSegments[c][i][1][0] * (350 / 32));
-				l.setAttribute('y2', contourSegments[c][i][1][1] * (350 / 32));
-				l.setAttribute('stroke', '#aaa');
-				l.setAttribute('stroke-width', '1');
-				bg.appendChild(l);
-			}
-		}
-		for (var i = 0; i < 32 + 1; i++) {
-			var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
-			l.setAttribute('x1', 0);
-			l.setAttribute('y1', i * 7);
-			l.setAttribute('x2', 7 * 32);
-			l.setAttribute('y2', i * 7);
-			l.setAttribute('stroke', '#a00');
-			l.setAttribute('stroke-width', '1');
-			bg.appendChild(l);
-			l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
-			l.setAttribute('x1', i * 7);
-			l.setAttribute('y1', 0);
-			l.setAttribute('x2', i * 7);
-			l.setAttribute('y2', 7 * 32);
-			l.setAttribute('stroke', '#a00');
-			l.setAttribute('stroke-width', '1');
-			bg.appendChild(l);
-		}
-*/			
 			
 		// 4) builds the paths that graphically represent the contours
 		for (var c = 0; c <= 10; c++) {
