@@ -31,7 +31,7 @@
 		},
 		random: function() {
 			this.x = (this.x * 1664525 + 1013904223) & ~0;
-			return this.x / Math.pow(2, 32);
+			return this.x / ~0;
 		}
 	};
 	
@@ -233,6 +233,7 @@
 		}
 		
 		// FIXME: Only for debugging
+		/*
 		for (var c = 0; c <= 10; c++) {
 			for (var i = 0; i < contourSegments[c].length; i++) {
 				var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
@@ -244,7 +245,7 @@
 				l.setAttribute('stroke-width', '1');
 				bg.appendChild(l);
 			}
-		}/*
+		}
 		for (var i = 0; i < 32 + 1; i++) {
 			var l = document.createElementNS(BLOTTO_APP.SVG_NS, 'line');
 			l.setAttribute('x1', 0);
@@ -266,7 +267,20 @@
 */			
 			
 		// 4) builds the paths that graphically represent the contours
-		// FIXME: Implement
+		for (var c = 0; c <= 10; c++) {
+			var p = document.createElementNS(BLOTTO_APP.SVG_NS, 'path');
+			var d = '';
+			for (var i = 0; i < contourSegments[c].length; i++) {
+				d += 'M ' + contourSegments[c][i][0][0] * (350 / 32) + ' ' + 
+					contourSegments[c][i][0][1] * (350 / 32) + ' ';
+				d += 'L ' + contourSegments[c][i][1][0] * (350 / 32) + ' ' + 
+					contourSegments[c][i][1][1] * (350 / 32) + ' ';
+			}
+			p.setAttribute('d', d);
+			p.setAttribute('stroke', '#aaa');
+			p.setAttribute('stroke-width', 1);
+			bg.appendChild(p);
+		}
 	};
 	
 	BLOTTO_APP.makeUnit = function(x, y, n, side, symbolOwner) {
