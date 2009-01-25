@@ -4,7 +4,11 @@
 	<script><![CDATA[
 	var BLOTTO_APP = {};
 	
+	BLOTTO_APP.WIDTH = 350;
+	BLOTTO_APP.HEIGHT = 350;
+	
 	BLOTTO_APP.CONT_NUM = 10;
+	BLOTTO_APP.CONT_GRID_SIZE = 32;
 	
 	BLOTTO_APP.DS_FILL_COLOR = '#a55';
 	BLOTTO_APP.DS_STROKE_COLOR = '#633';
@@ -12,7 +16,7 @@
 	BLOTTO_APP.LS_FILL_COLOR = '#55a';
 	BLOTTO_APP.LS_STROKE_COLOR = '#336';
 	
-	BLOTTO_APP.SCALE_FACTOR = 3;
+	BLOTTO_APP.SCALE_FACTOR = 6;
 	BLOTTO_APP.SVG_NS = 'http://www.w3.org/2000/svg';
 	
 	BLOTTO_APP.debug_alert_n = function() {
@@ -47,31 +51,38 @@
 		invalid: 3
 	};
 	
-	BLOTTO_APP.units = [];
-	
 	BLOTTO_APP.onLoad = function() {
 		this.currentState = this.states.asigningTroops;
-		area = document.getElementById('area');
-		bg = document.getElementById('background');
+		var area = document.getElementById('area');
+		var bg = document.getElementById('background');
 		this.makeBGTopography(bg);
+		this.lightSideCommander = this.makeCommander(300);
+		this.darkSideCommander = this.makeCommander(50);
 		for (var i = 0; i < 10; i++) {
-			this.units[i] = this.makeUnit(i * 31 + 35.5, 250,
-				10, this.sides.light, area);
+			newUnit = this.makeUnit(
+				10 + i, this.sides.light, this.lightSideCommander, area);
+			this.lightSideCommander.giveUnit(newUnit);
 		}
 		for (var i = 0; i < 10; i++) {
-			this.units[i] = this.makeUnit(i * 31 + 35.5, 50,
-				10, this.sides.dark, area);
+			newUnit = this.makeUnit(
+				20 - i, this.sides.dark, this.darkSideCommander, area);
+			this.darkSideCommander.giveUnit(newUnit);
 		}
+		this.lightSideCommander.update();
+		this.darkSideCommander.update();
 	};
 	
 	BLOTTO_APP.makeBGTopography = function(bg) {
 		// 1) makes a fractal heightmap
-		heightMap = [];
-		for (var i = 0; i < 32 + 1; i++) {
+		var heightMap = [];
+		var N = BLOTTO_APP.CONT_GRID_SIZE;
+		var W = BLOTTO_APP.WIDTH;
+		var H = BLOTTO_APP.HEIGHT;
+		for (var i = 0; i < N + 1; i++) {
 			heightMap[i] = [];
 		}
-		heightMap[0][0] = heightMap[0][33-1] = heightMap[33-1][0] = 
-			heightMap[32][32] = 0;
+		heightMap[0][0] = heightMap[0][N] = heightMap[N][0] = 
+			heightMap[N][N] = 0;
 		var recFractal = function(left, top, right, bottom, delta, hm) {
 			if (right - left == 1) {
 				return;
@@ -97,13 +108,13 @@
 			recFractal(cx, top, right, cy, delta * 0.5, hm);
 			recFractal(cx, cy, right, bottom, delta * 0.5, hm);
 		}
-		recFractal(0, 0, 32, 32, 1, heightMap);
+		recFractal(0, 0, N, N, 1, heightMap);
 		
 		// 2) rescales heights
 		var maxHeight = heightMap[0][0];
 		var minHeight = maxHeight;
-		for (var i = 0; i < 32 + 1; i++) {
-			for (var j = 0; j < 32 + 1; j++) {
+		for (var i = 0; i < N + 1; i++) {
+			for (var j = 0; j < N + 1; j++) {
 				if (heightMap[i][j] > maxHeight) {
 					maxHeight = heightMap[i][j];
 				}
@@ -112,8 +123,8 @@
 				}
 			}
 		}
-		for (var i = 0; i < 32 + 1; i++) {
-			for (var j = 0; j < 32 + 1; j++) {
+		for (var i = 0; i < N + 1; i++) {
+			for (var j = 0; j < N + 1; j++) {
 				heightMap[i][j] = (heightMap[i][j] - minHeight) / 
 					(maxHeight - minHeight);
 			}
@@ -137,8 +148,8 @@
 		for (var c = 0; c <= BLOTTO_APP.CONT_NUM; c++) {
 			var h = c * 0.1;
 			contourSegments[c] = [];
-			for (var i = 0; i < 32; i++) {
-				for (var j = 0; j < 32; j++) {
+			for (var i = 0; i < N; i++) {
+				for (var j = 0; j < N; j++) {
 					var cellType = ((heightMap[i][j] > h) ? 1 : 0) +
 						((heightMap[i][j+1] > h) ? 8 : 0) +
 						((heightMap[i+1][j+1] > h) ? 4 : 0) +
@@ -197,14 +208,14 @@
 		}
 			
 		// 4) builds the paths that graphically represent the contours
-		for (var c = 0; c <= 10; c++) {
+		for (var c = 0; c <= BLOTTO_APP.CONT_NUM; c++) {
 			var p = document.createElementNS(BLOTTO_APP.SVG_NS, 'path');
 			var d = '';
 			for (var i = 0; i < contourSegments[c].length; i++) {
-				d += 'M ' + contourSegments[c][i][0][0] * (350 / 32) + ' ' + 
-					contourSegments[c][i][0][1] * (350 / 32) + ' ';
-				d += 'L ' + contourSegments[c][i][1][0] * (350 / 32) + ' ' + 
-					contourSegments[c][i][1][1] * (350 / 32) + ' ';
+				d += 'M ' + contourSegments[c][i][0][0] * (W / N) + ' ' + 
+					contourSegments[c][i][0][1] * (H / N) + ' ';
+				d += 'L ' + contourSegments[c][i][1][0] * (W / N) + ' ' + 
+					contourSegments[c][i][1][1] * (H / N) + ' ';
 			}
 			p.setAttribute('d', d);
 			p.setAttribute('stroke', '#aaa');
@@ -212,21 +223,53 @@
 			bg.appendChild(p);
 		}
 	};
+
+	BLOTTO_APP.makeCommander = function(y) {
+		var commander = {};
+		commander.y = y;
+		commander.units = [];
+		commander.giveUnit = function(unit) {
+			this.units[this.units.length] = unit;
+			unit.y = commander.y;
+		};
+		commander.update = function() {
+			// gets the accumulated size of the units
+			var accumSize = 0;
+			for (var i = 0; i < this.units.length; i++) {
+				accumSize += this.units[i].getSymbolSize();
+			}
+			// gets the spacing between units
+			var spacing = (BLOTTO_APP.WIDTH - accumSize) / 
+				(this.units.length + 1);
+			// positions the units
+			var x = spacing;
+			for (var i = 0; i < this.units.length; i++) {
+				var unitSize = this.units[i].getSymbolSize();
+				this.units[i].x = x + unitSize / 2;
+				this.units[i].update();
+				x += unitSize + spacing;
+			}
+		};
+		return commander;
+	};
 	
-	BLOTTO_APP.makeUnit = function(x, y, n, side, symbolOwner) {
+	BLOTTO_APP.makeUnit = function(n, side, commander, symbolOwner) {
 		newUnit = {};
-		newUnit.x = x;
-		newUnit.y = y;
+		newUnit.x = 0;
+		newUnit.y = 0;
 		newUnit.n = n;
 		newUnit.side = side;
+		newUnit.commander = commander;
 		newUnit.symbol = document.createElementNS(this.SVG_NS, 'circle');
 		symbolOwner.appendChild(newUnit.symbol);
 		newUnit.symbol.setAttribute('stroke-width', '2');
+		newUnit.getSymbolSize = function() {
+			return Math.sqrt(this.n) * BLOTTO_APP.SCALE_FACTOR;
+		};
 		newUnit.update = function() {
 			this.symbol.setAttribute('cx', this.x);
 			this.symbol.setAttribute('cy', this.y);
-			this.symbol.setAttribute('r', Math.sqrt(this.n) * 
-				BLOTTO_APP.SCALE_FACTOR);
+			this.symbol.setAttribute('r', this.getSymbolSize() / 2);
 			if (side == BLOTTO_APP.sides.light) {
 				this.symbol.setAttribute('stroke', BLOTTO_APP.LS_STROKE_COLOR);
 				this.symbol.setAttribute('fill', BLOTTO_APP.LS_FILL_COLOR);
@@ -236,7 +279,7 @@
 				this.symbol.setAttribute('fill', BLOTTO_APP.DS_FILL_COLOR);
 			}
 		};
-		newUnit.update();
+		return newUnit;
 	};
 	
 	]]></script>
