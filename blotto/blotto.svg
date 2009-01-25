@@ -15,6 +15,7 @@
 	
 	BLOTTO_APP.LS_FILL_COLOR = '#55a';
 	BLOTTO_APP.LS_STROKE_COLOR = '#336';
+	BLOTTO_APP.LS_HL_STROKE_COLOR = '#aad';
 	
 	BLOTTO_APP.SCALE_FACTOR = 6;
 	BLOTTO_APP.SVG_NS = 'http://www.w3.org/2000/svg';
@@ -59,17 +60,44 @@
 		this.lightSideCommander = this.makeCommander(300);
 		this.darkSideCommander = this.makeCommander(50);
 		for (var i = 0; i < 10; i++) {
-			newUnit = this.makeUnit(
-				10 + i, this.sides.light, this.lightSideCommander, area);
+			newUnit = this.makeUnit(10, this.sides.light, 
+				this.lightSideCommander, area);
 			this.lightSideCommander.giveUnit(newUnit);
 		}
 		for (var i = 0; i < 10; i++) {
-			newUnit = this.makeUnit(
-				20 - i, this.sides.dark, this.darkSideCommander, area);
+			newUnit = this.makeUnit(10, this.sides.dark, 
+				this.darkSideCommander, area);
 			this.darkSideCommander.giveUnit(newUnit);
 		}
 		this.lightSideCommander.update();
 		this.darkSideCommander.update();
+	};
+	
+	BLOTTO_APP.unitOnMouseDown = function(evt) {
+		// search for the unit that received the event 
+		// TODO: it can be made more efficient by adding an ID to the symbol
+		for (var i = 0; i < this.lightSideCommander.units.length; i++) {
+			if (this.lightSideCommander.units[i].symbol == evt.target) {
+				// found it; takes appropiate acction based on the kind of event
+				if (evt.which == 1) {
+					this.lightSideCommander.addTroopsTo(i);
+				}
+				else {
+					this.lightSideCommander.removeTroopsFrom(i);
+				}
+				this.lightSideCommander.update();
+			}
+		}
+		
+		return true;
+	};
+	
+	BLOTTO_APP.unitOnMouseOver = function(evt) {
+		evt.target.setAttribute('stroke', BLOTTO_APP.LS_HL_STROKE_COLOR);
+	};
+	
+	BLOTTO_APP.unitOnMouseOut = function(evt) {
+		evt.target.setAttribute('stroke', BLOTTO_APP.LS_STROKE_COLOR);
 	};
 	
 	BLOTTO_APP.makeBGTopography = function(bg) {
@@ -228,9 +256,37 @@
 		var commander = {};
 		commander.y = y;
 		commander.units = [];
+		commander.reserveTroops = 0;
+		commander.lastTimeDelta = 0;
 		commander.giveUnit = function(unit) {
 			this.units[this.units.length] = unit;
 			unit.y = commander.y;
+		};
+		commander.addTroopsTo = function(unitIndex) {
+			if (this.lastTimeDelta <= 0) {
+				this.lastTimeDelta = 1;
+			}
+			else {
+				this.lastTimeDelta *= 2;
+			}
+			if (this.lastTimeDelta > this.reserveTroops) {
+				this.lastTimeDelta = this.reserveTroops;
+			}
+			this.units[unitIndex].n += this.lastTimeDelta;
+			this.reserveTroops -= this.lastTimeDelta;
+		};
+		commander.removeTroopsFrom = function(unitIndex) {
+			if (this.lastTimeDelta >= 0) {
+				this.lastTimeDelta = -1;
+			}
+			else {
+				this.lastTimeDelta *= 2;
+			}
+			if (this.lastTimeDelta + this.units[unitIndex].n < 1) {
+				this.lastTimeDelta = -this.units[unitIndex].n + 1;
+			}
+			this.units[unitIndex].n += this.lastTimeDelta;
+			this.reserveTroops -= this.lastTimeDelta;
 		};
 		commander.update = function() {
 			// gets the accumulated size of the units
@@ -261,8 +317,28 @@
 		newUnit.side = side;
 		newUnit.commander = commander;
 		newUnit.symbol = document.createElementNS(this.SVG_NS, 'circle');
-		symbolOwner.appendChild(newUnit.symbol);
 		newUnit.symbol.setAttribute('stroke-width', '2');
+		newUnit.strengthText = document.createElementNS(this.SVG_NS, 'text');
+		newUnit.strengthText.setAttribute('font-size', '12');
+		newUnit.strengthText.setAttribute('font-family', 'sans-serif');
+		newUnit.strengthText.setAttribute('font-weight', 'bold');
+		newUnit.strengthText.setAttribute('text-anchor', 'middle');
+		newUnit.strengthText.appendChild(document.createTextNode('!!'));
+		symbolOwner.appendChild(newUnit.symbol);
+		symbolOwner.appendChild(newUnit.strengthText);
+		if (side == BLOTTO_APP.sides.light) {
+			newUnit.symbol.setAttribute('stroke', BLOTTO_APP.LS_STROKE_COLOR);
+			newUnit.symbol.setAttribute('fill', BLOTTO_APP.LS_FILL_COLOR);
+			newUnit.symbol.setAttribute('onmousedown', 'BLOTTO_APP.unitOnMouseDown(evt)');
+			newUnit.symbol.setAttribute('onmouseover', 'BLOTTO_APP.unitOnMouseOver(evt)');
+			newUnit.symbol.setAttribute('onmouseout', 'BLOTTO_APP.unitOnMouseOut(evt)');
+			newUnit.strengthText.setAttribute('fill', BLOTTO_APP.LS_FILL_COLOR);
+		}
+		else { // If they aren't with us, they're against us... :-P
+			newUnit.symbol.setAttribute('stroke', BLOTTO_APP.DS_STROKE_COLOR);
+			newUnit.symbol.setAttribute('fill', BLOTTO_APP.DS_FILL_COLOR);
+			newUnit.strengthText.setAttribute('fill', BLOTTO_APP.DS_FILL_COLOR);
+		}
 		newUnit.getSymbolSize = function() {
 			return Math.sqrt(this.n) * BLOTTO_APP.SCALE_FACTOR;
 		};
@@ -270,23 +346,23 @@
 			this.symbol.setAttribute('cx', this.x);
 			this.symbol.setAttribute('cy', this.y);
 			this.symbol.setAttribute('r', this.getSymbolSize() / 2);
-			if (side == BLOTTO_APP.sides.light) {
-				this.symbol.setAttribute('stroke', BLOTTO_APP.LS_STROKE_COLOR);
-				this.symbol.setAttribute('fill', BLOTTO_APP.LS_FILL_COLOR);
-			}
-			else { // If they aren't with us, they're against us... :-P
-				this.symbol.setAttribute('stroke', BLOTTO_APP.DS_STROKE_COLOR);
-				this.symbol.setAttribute('fill', BLOTTO_APP.DS_FILL_COLOR);
-			}
+			this.strengthText.setAttribute('x', this.x);
+			this.strengthText.setAttribute('y', this.y + this.getSymbolSize() / 2 + 15);
+			this.strengthText.firstChild.data = this.n;
 		};
 		return newUnit;
+	};
+	
+	BLOTTO_APP.startButtonSetFill = function(newFill) {
+		r = document.getElementById('startButtonRect');
+		r.setAttribute('fill', newFill);
 	};
 	
 	]]></script>
 	<g id="frame">
 		<rect id="frameBackground" x="0" y="0" width="370" height="390"
 		 stroke-width="0" fill="#777" />
-		<text id="stepTxt" x="185" y="22" fill="#ccc"
+		<text id="titleText" x="185" y="22" fill="#ccc"
 		 font-size="16" font-family="sans-serif" font-weight="bold" 
 		 text-anchor="middle"> 
 		Colonel Blotto
@@ -295,6 +371,17 @@
 			<g id="background">
 				<rect id="areaBGRect" x="0" y="0" width="350" height="350"
 				 stroke-width="0" fill="#000000" />
+			</g>
+			<g id="startButton" transform="translate(175,175)" 
+			 onmouseover="BLOTTO_APP.startButtonSetFill('#999')" 
+			 onmouseout="BLOTTO_APP.startButtonSetFill('#777')">
+				<rect id="startButtonRect" x="-50" y="-15" width="100" height="30" 
+				 stroke="#ccc" stroke-width="2" fill="#777" />
+				<text x="0" y="0" fill="#ccc" font-size="16" 
+				 font-family="sans-serif" font-weight="bold" 
+				 text-anchor="middle" dominant-baseline="middle">
+				Start battle
+				</text>
 			</g>
 		</g>
 	</g>
