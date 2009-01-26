@@ -67,8 +67,25 @@
 		// FIXME: Implement
 	};
 	
-	C3D_APP.getRotationMatrix = function(axis, angle) {
-		// FIXME: Implement
+	C3D_APP.getXRotationMatrix = function(angle) {
+		return [
+			[1,0,0],
+			[0,Math.cos(angle),Math.sin(angle)],
+			[0,-Math.sin(angle),Math.cos(angle)]];
+	};
+	
+	C3D_APP.getYRotationMatrix = function(angle) {
+		return [
+			[math.cos(angle),0,-Math.sin(angle)],
+			[0,1,0],
+			[Math.sin(angle),0,Math.cos(angle)]];
+	};
+	
+	C3D_APP.getZRotationMatrix = function(angle) {
+		return [
+			[Math.cos(angle),Math.sin(angle),0],
+			[-Math.sin(angle),Math.cos(angle),0],
+			[0,0,1]];
 	};
 	
 	C3D_APP.makeTopography = function(bg) {
@@ -211,7 +228,8 @@
 	};
 	
 	C3D_APP.getInitialTransformMatrix = function() {
-		return [[10,0,0],[0,10,0],[0,0,10]];
+		return this.getZRotationMatrix(1);
+		//return [[10,0,0],[0,10,0],[0,0,10]];
 	};
 	
 	C3D_APP.transformContours = function(contoursArray, matrix) {
