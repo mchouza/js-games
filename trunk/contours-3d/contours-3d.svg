@@ -211,20 +211,19 @@
 	};
 	
 	C3D_APP.getInitialTransformMatrix = function() {
-		// FIXME: Implement
+		return [[10,0,0],[0,10,0],[0,0,10]];
 	};
 	
 	C3D_APP.transformContours = function(contoursArray, matrix) {
-		// FIXME: Implement
 		trContoursArray = [];
 		for (var i = 0; i < contoursArray.length; i++) {
 			trContoursArray[i] = [];
 			for (var j = 0; j < contoursArray[i].length; j++) {
-				trContoursArray[i][j] = [[], []];
-				trContoursArray[i][j][0][0] = 10 * contoursArray[i][j][0][0];
-				trContoursArray[i][j][0][1] = 10 * contoursArray[i][j][0][1];
-				trContoursArray[i][j][1][0] = 10 * contoursArray[i][j][1][0];
-				trContoursArray[i][j][1][1] = 10 * contoursArray[i][j][1][1];
+				trContoursArray[i][j] = [];
+				trContoursArray[i][j][0] = 
+					this.matrixVecMul(matrix, contoursArray[i][j][0]);
+				trContoursArray[i][j][1] = 
+					this.matrixVecMul(matrix, contoursArray[i][j][1]);
 			}
 		}
 		return trContoursArray;
