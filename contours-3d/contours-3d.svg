@@ -42,7 +42,7 @@
 			for (var j = 0; j < b[0].length; j++) {
 				c[i][j] = 0;
 				for (var k = 0; k < b.length; k++) {
-					c[i][j] += a[i][k] * b[k][i];
+					c[i][j] += a[i][k] * b[k][j];
 				}
 			}
 		}
@@ -96,6 +96,28 @@
 			[factor,0,0,0],
 			[0,factor,0,0],
 			[0,0,factor,0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getNonUniformScalingMatrix = function(scalingVector) {
+		if (scalingVector.length != 3) {
+			throw "the scaling vector must have exactly 3 components";
+		}
+		return [
+			[scalingVector[0],0,0,0],
+			[0,scalingVector[1],0,0],
+			[0,0,scalingVector[2],0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getTranslationMatrix = function(delta) {
+		if (delta.length != 3) {
+			throw "the translation vector must have exactly 3 components";
+		}
+		return [
+			[1,0,0,delta[0]],
+			[0,1,0,delta[1]],
+			[0,0,1,delta[2]],
 			[0,0,0,1]];
 	};
 	
@@ -239,9 +261,16 @@
 	};
 	
 	C3D_APP.getInitialTransformMatrix = function() {
-		var zRot = this.getZRotationMatrix(1);
-		var scale = this.getScalingMatrix(10);
-		return this.matrixMul(zRot, scale);
+		var t1m = this.getTranslationMatrix([-16,-16,0]);
+		var sm = this.getNonUniformScalingMatrix([10,10,100]);
+		var rzm = this.getZRotationMatrix(0.8);
+		var rxm = this.getXRotationMatrix(1.0);
+		var t2m = this.getTranslationMatrix([160,160,0]);
+		var accum = this.matrixMul(sm, t1m);
+		accum = this.matrixMul(rzm, accum);
+		accum = this.matrixMul(rxm, accum);
+		accum = this.matrixMul(t2m, accum);
+		return accum;
 	};
 	
 	C3D_APP.transformContours = function(contoursArray, matrix) {
