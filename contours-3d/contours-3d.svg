@@ -69,23 +69,34 @@
 	
 	C3D_APP.getXRotationMatrix = function(angle) {
 		return [
-			[1,0,0],
-			[0,Math.cos(angle),Math.sin(angle)],
-			[0,-Math.sin(angle),Math.cos(angle)]];
+			[1,0,0,0],
+			[0,Math.cos(angle),Math.sin(angle),0],
+			[0,-Math.sin(angle),Math.cos(angle),0],
+			[0,0,0,1]];
 	};
 	
 	C3D_APP.getYRotationMatrix = function(angle) {
 		return [
-			[math.cos(angle),0,-Math.sin(angle)],
-			[0,1,0],
-			[Math.sin(angle),0,Math.cos(angle)]];
+			[math.cos(angle),0,-Math.sin(angle),0],
+			[0,1,0,0],
+			[Math.sin(angle),0,Math.cos(angle),0]
+			[0,0,0,1]];
 	};
 	
 	C3D_APP.getZRotationMatrix = function(angle) {
 		return [
-			[Math.cos(angle),Math.sin(angle),0],
-			[-Math.sin(angle),Math.cos(angle),0],
-			[0,0,1]];
+			[Math.cos(angle),Math.sin(angle),0,0],
+			[-Math.sin(angle),Math.cos(angle),0,0],
+			[0,0,1,0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getScalingMatrix = function(factor) {
+		return [
+			[factor,0,0,0],
+			[0,factor,0,0],
+			[0,0,factor,0],
+			[0,0,0,1]];
 	};
 	
 	C3D_APP.makeTopography = function(bg) {
@@ -159,7 +170,7 @@
 			var j1int = j1b * lambda1 + j1a * (1 - lambda1);
 			var i2int = i2b * lambda2 + i2a * (1 - lambda2);
 			var j2int = j2b * lambda2 + j2a * (1 - lambda2);
-			return [[i1int, j1int, h], [i2int, j2int, h]];
+			return [[i1int, j1int, h, 1], [i2int, j2int, h, 1]];
 		};
 		for (var c = 0; c <= C3D_APP.CONT_NUM; c++) {
 			var h = c * 0.1;
@@ -228,8 +239,9 @@
 	};
 	
 	C3D_APP.getInitialTransformMatrix = function() {
-		return this.getZRotationMatrix(1);
-		//return [[10,0,0],[0,10,0],[0,0,10]];
+		var zRot = this.getZRotationMatrix(1);
+		var scale = this.getScalingMatrix(10);
+		return this.matrixMul(zRot, scale);
 	};
 	
 	C3D_APP.transformContours = function(contoursArray, matrix) {
