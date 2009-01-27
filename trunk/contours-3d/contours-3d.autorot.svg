@@ -1,0 +1,353 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ onload="C3D_APP.onLoad();"> 
+	<script><![CDATA[
+	var C3D_APP = {};
+	
+	C3D_APP.WIDTH = 350;
+	C3D_APP.HEIGHT = 350;
+	
+	C3D_APP.CONT_NUM = 10;
+	C3D_APP.CONT_GRID_SIZE = 32;
+	
+	C3D_APP.SVG_NS = 'http://www.w3.org/2000/svg';
+	
+	C3D_APP.debug_alert_n = function() {
+		var counter = 4;
+		return function(msg) {
+			if (counter-- > 0) {
+				alert(msg);
+			}
+		}
+	}();
+	
+	C3D_APP.randomGen = {
+		x: (new Date()).valueOf(),
+		seed: function(newSeed) {
+			this.x = newSeed;
+		},
+		random: function() {
+			this.x = (this.x * 1664525 + 1013904223) & ~0;
+			return this.x / ~0;
+		}
+	};
+	
+	C3D_APP.matrixMul = function(a, b) {
+		var c = []; //  c = ab
+		if (a[0].length != b.length) {
+			throw "the size of the matrices are incompatible";
+		}
+		for (var i = 0; i < a.length; i++) {
+			c[i] = [];
+			for (var j = 0; j < b[0].length; j++) {
+				c[i][j] = 0;
+				for (var k = 0; k < b.length; k++) {
+					c[i][j] += a[i][k] * b[k][j];
+				}
+			}
+		}
+		return c;
+	};
+	
+	C3D_APP.matrixVecMul = function(a, x) {
+		var y = [];
+		if (a[0].length != x.length) {
+			throw "the size of the matrix and the vector are incompatible";
+		}
+		for (var i = 0; i < a.length; i++) {
+			y[i] = 0;
+			for (var j = 0; j < x.length; j++) {
+				y[i] += a[i][j] * x[j];
+			}
+		}
+		return y;
+	};
+	
+	C3D_APP.getPerspectiveMatrix = function(fov, nearClip, farClip) {
+		// FIXME: Implement
+	};
+	
+	C3D_APP.getXRotationMatrix = function(angle) {
+		return [
+			[1,0,0,0],
+			[0,Math.cos(angle),Math.sin(angle),0],
+			[0,-Math.sin(angle),Math.cos(angle),0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getYRotationMatrix = function(angle) {
+		return [
+			[math.cos(angle),0,-Math.sin(angle),0],
+			[0,1,0,0],
+			[Math.sin(angle),0,Math.cos(angle),0]
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getZRotationMatrix = function(angle) {
+		return [
+			[Math.cos(angle),Math.sin(angle),0,0],
+			[-Math.sin(angle),Math.cos(angle),0,0],
+			[0,0,1,0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getScalingMatrix = function(factor) {
+		return [
+			[factor,0,0,0],
+			[0,factor,0,0],
+			[0,0,factor,0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getNonUniformScalingMatrix = function(scalingVector) {
+		if (scalingVector.length != 3) {
+			throw "the scaling vector must have exactly 3 components";
+		}
+		return [
+			[scalingVector[0],0,0,0],
+			[0,scalingVector[1],0,0],
+			[0,0,scalingVector[2],0],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.getTranslationMatrix = function(delta) {
+		if (delta.length != 3) {
+			throw "the translation vector must have exactly 3 components";
+		}
+		return [
+			[1,0,0,delta[0]],
+			[0,1,0,delta[1]],
+			[0,0,1,delta[2]],
+			[0,0,0,1]];
+	};
+	
+	C3D_APP.makeTopography = function(bg) {
+		// 1) makes a fractal heightmap
+		var heightMap = [];
+		var N = C3D_APP.CONT_GRID_SIZE;
+		var W = C3D_APP.WIDTH;
+		var H = C3D_APP.HEIGHT;
+		for (var i = 0; i < N + 1; i++) {
+			heightMap[i] = [];
+		}
+		heightMap[0][0] = heightMap[0][N] = heightMap[N][0] = 
+			heightMap[N][N] = 0;
+		var recFractal = function(left, top, right, bottom, delta, hm) {
+			if (right - left == 1) {
+				return;
+			}
+			var cx = (left + right) / 2;
+			var cy = (top + bottom) / 2;
+			// gets the central point height
+			hm[cy][cx] = (C3D_APP.randomGen.random() - 0.5) * delta + 
+				(hm[top][left] + hm[top][right] + hm[bottom][left] + 
+				hm[bottom][right]) / 4;
+			// gets the edges midpoint heights
+			hm[cy][left] = (hm[top][left] + hm[bottom][left]) / 2 +
+				(C3D_APP.randomGen.random() - 0.5) * delta;
+			hm[cy][right] = (hm[top][right] + hm[bottom][right]) / 2 +
+				(C3D_APP.randomGen.random() - 0.5) * delta;
+			hm[top][cx] = (hm[top][left] + hm[top][right]) / 2 +
+				(C3D_APP.randomGen.random() - 0.5) * delta;
+			hm[bottom][cx] = (hm[bottom][left] + hm[bottom][right]) / 2 +
+				(C3D_APP.randomGen.random() - 0.5) * delta;
+			// recursive phase
+			recFractal(left, top, cx, cy, delta * 0.5, hm);
+			recFractal(left, cy, cx, bottom, delta * 0.5, hm);
+			recFractal(cx, top, right, cy, delta * 0.5, hm);
+			recFractal(cx, cy, right, bottom, delta * 0.5, hm);
+		}
+		recFractal(0, 0, N, N, 1, heightMap);
+		
+		// 2) rescales heights
+		var maxHeight = heightMap[0][0];
+		var minHeight = maxHeight;
+		for (var i = 0; i < N + 1; i++) {
+			for (var j = 0; j < N + 1; j++) {
+				if (heightMap[i][j] > maxHeight) {
+					maxHeight = heightMap[i][j];
+				}
+				if (heightMap[i][j] < minHeight) {
+					minHeight = heightMap[i][j];
+				}
+			}
+		}
+		for (var i = 0; i < N + 1; i++) {
+			for (var j = 0; j < N + 1; j++) {
+				heightMap[i][j] = (heightMap[i][j] - minHeight) / 
+					(maxHeight - minHeight);
+			}
+		}
+		
+		// 3) gets contours as line segments (it's not very elegant code, But It Works (TM))
+		var contourSegments = [];
+		var makeSegment = function(i1a, j1a, i1b, j1b, i2a, j2a, i2b, j2b, h) {
+			var h1a = heightMap[i1a][j1a];
+			var h1b = heightMap[i1b][j1b];
+			var h2a = heightMap[i2a][j2a];
+			var h2b = heightMap[i2b][j2b];
+			var lambda1 = (h - h1a) / (h1b - h1a);
+			var lambda2 = (h - h2a) / (h2b - h2a);
+			var i1int = i1b * lambda1 + i1a * (1 - lambda1);
+			var j1int = j1b * lambda1 + j1a * (1 - lambda1);
+			var i2int = i2b * lambda2 + i2a * (1 - lambda2);
+			var j2int = j2b * lambda2 + j2a * (1 - lambda2);
+			return [[i1int, j1int, h, 1], [i2int, j2int, h, 1]];
+		};
+		for (var c = 0; c <= C3D_APP.CONT_NUM; c++) {
+			var h = c * 0.1;
+			contourSegments[c] = [];
+			for (var i = 0; i < N; i++) {
+				for (var j = 0; j < N; j++) {
+					var cellType = ((heightMap[i][j] > h) ? 1 : 0) +
+						((heightMap[i][j+1] > h) ? 8 : 0) +
+						((heightMap[i+1][j+1] > h) ? 4 : 0) +
+						((heightMap[i+1][j] > h) ? 2 : 0);
+					switch (cellType) {
+					case 0:
+					case 15: // doesn't cross
+						break; 
+					case 1:
+					case 14: // crosses between (i, j) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i,j,i,j+1,i,j,i+1,j,h));
+						break;
+					case 2:
+					case 13: // crosses between (i+1, j) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i+1,j,i,j,i+1,j,i+1,j+1,h));
+						break;
+					case 8:
+					case 7: // crosses between (i, j+1) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i,j+1,i+1,j+1,i,j+1,i,j,h));
+						break;
+					case 4:
+					case 11: // crosses between (i+1, j+1) and the other vertices
+						contourSegments[c].push(
+							makeSegment(i+1,j+1,i,j+1,i+1,j+1,i+1,j,h));
+						break;
+					case 9:
+					case 6: // crosses horizontally
+						contourSegments[c].push(
+							makeSegment(i,j,i+1,j,i,j+1,i+1,j+1,h));
+						break;
+					case 3:
+					case 12: // crosses vertically
+						contourSegments[c].push(
+							makeSegment(i,j,i,j+1,i+1,j,i+1,j+1,h));
+						break;
+					case 5:
+					case 10: // ambiguous, breaks the tie randomly
+						if (this.randomGen.random() < 0.5) {
+							contourSegments[c].push(
+								makeSegment(i,j,i,j+1,i,j,i+1,j,h));
+							contourSegments[c].push(
+								makeSegment(i+1,j+1,i,j+1,i+1,j+1,i+1,j,h));
+						}
+						else {
+							contourSegments[c].push(
+								makeSegment(i,j+1,i,j,i,j+1,i+1,j+1,h));
+							contourSegments[c].push(
+								makeSegment(i+1,j,i+1,j+1,i+1,j,i,j,h));
+						}
+					}
+				}
+			}
+		}
+		
+		// 4) returns the contours segments ordered by height
+		return contourSegments;
+	};
+	
+	C3D_APP.getTransformMatrix = function(angle) {
+		var t1m = this.getTranslationMatrix([-16,-16,0]);
+		var sm = this.getNonUniformScalingMatrix([10,10,100]);
+		var rzm = this.getZRotationMatrix(0.8 + angle);
+		var rxm = this.getXRotationMatrix(1.0);
+		var t2m = this.getTranslationMatrix([160,160,0]);
+		var accum = this.matrixMul(sm, t1m);
+		accum = this.matrixMul(rzm, accum);
+		accum = this.matrixMul(rxm, accum);
+		accum = this.matrixMul(t2m, accum);
+		return accum;
+	};
+	
+	C3D_APP.transformContours = function(contoursArray, matrix) {
+		trContoursArray = [];
+		for (var i = 0; i < contoursArray.length; i++) {
+			trContoursArray[i] = [];
+			for (var j = 0; j < contoursArray[i].length; j++) {
+				trContoursArray[i][j] = [];
+				trContoursArray[i][j][0] = 
+					this.matrixVecMul(matrix, contoursArray[i][j][0]);
+				trContoursArray[i][j][1] = 
+					this.matrixVecMul(matrix, contoursArray[i][j][1]);
+			}
+		}
+		return trContoursArray;
+	};
+	
+	C3D_APP.makeContourPaths = function(numContours) {
+		var area = document.getElementById('area');
+		var contourPaths = [];
+		for (var i = 0; i < numContours; i++) {
+			var p = document.createElementNS(C3D_APP.SVG_NS, 'path');
+			p.setAttribute('stroke', '#aaa');
+			p.setAttribute('stroke-width', 1);
+			area.appendChild(p);
+			contourPaths[i] = p;
+		}
+		return contourPaths;
+	};
+	
+	C3D_APP.updateContourPaths = function(contourPaths, trContoursArray) {
+		if (contourPaths.length != trContoursArray.length) {
+			throw "the number of contours doesn't match";
+		}
+		// updates contour paths throwing the z values
+		for (var i = 0; i < contourPaths.length; i++) {
+			var d = '';
+			for (var j = 0; j < trContoursArray[i].length; j++) {
+				d += 'M ' + trContoursArray[i][j][0][0] + ' ' + 
+					trContoursArray[i][j][0][1] + ' L ' + 
+					trContoursArray[i][j][1][0] + ' ' + 
+					trContoursArray[i][j][1][1];
+			}
+			contourPaths[i].setAttribute('d', d);
+		}
+	};
+	
+	C3D_APP.onLoad = function() {
+		var area = document.getElementById('area');
+		C3D_APP.contoursArray = this.makeTopography(area);
+		var matrix = this.getTransformMatrix(0);
+		var trContoursArray = C3D_APP.transformContours(C3D_APP.contoursArray, matrix);
+		C3D_APP.contourPaths = this.makeContourPaths(trContoursArray.length);
+		C3D_APP.updateContourPaths(C3D_APP.contourPaths, trContoursArray);
+		setTimeout(C3D_APP.update, 100);
+		C3D_APP.angle = 0;
+	};
+	
+	C3D_APP.update = function() {
+		var matrix = C3D_APP.getTransformMatrix(C3D_APP.angle);
+		C3D_APP.angle += 0.1;
+		var trContoursArray = C3D_APP.transformContours(C3D_APP.contoursArray, matrix);
+		C3D_APP.updateContourPaths(C3D_APP.contourPaths, trContoursArray);
+		setTimeout(C3D_APP.update, 100);
+	};
+	]]></script>
+	<g id="frame">
+		<rect id="frameBackground" x="0" y="0" width="370" height="390"
+		 stroke-width="0" fill="#777" />
+		<text id="titleText" x="185" y="22" fill="#ccc"
+		 font-size="16" font-family="sans-serif" font-weight="bold" 
+		 text-anchor="middle"> 
+		Contours 3D
+		</text> 
+		<g id="area" transform="translate(10,30)">
+				<rect id="areaBGRect" x="0" y="0" width="350" height="350"
+				 stroke-width="0" fill="#000000" />
+		</g>
+	</g>
+</svg>
