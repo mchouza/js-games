@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ onload="SPK_APP.onLoad();"> 
+	<script><![CDATA[
+	var SPK_APP = {};
+	
+	SPK_APP.WIDTH = 350;
+	SPK_APP.HEIGHT = 350;
+	
+	SPK_APP.MAX_RADIUS = 150;
+	SPK_APP.RADIAL_VEL = 40;
+	SPK_APP.TIMESTEP = 0.1;
+	SPK_APP.STEPS_BY_CIRCLE = 6;
+	
+	SPK_APP.SVG_NS = 'http://www.w3.org/2000/svg';
+	
+	SPK_APP.createNewCircle = function() {
+		// searches for the first empty place
+		var i = 0;
+		for (; i < this.circles.length; i++) {
+			if (this.circles[i] === null) {
+				break;
+			}
+		}
+		
+		// creates the new circle
+		this.circles[i] = {
+			radius: 0,
+			object: document.createElementNS(this.SVG_NS, 'circle')
+		};
+		this.circles[i].object.setAttribute('cx', this.WIDTH / 2);
+		this.circles[i].object.setAttribute('cy', this.HEIGHT / 2);
+		this.circles[i].object.setAttribute('r', 0);
+		this.circles[i].object.setAttribute('stroke', 'white');
+		this.circles[i].object.setAttribute('stroke-width', 2);
+		document.getElementById('frame').appendChild(this.circles[i].object);
+	};
+	
+	SPK_APP.updateAllCircles = function() {
+		for (var i = 0; i < this.circles.length; i++) {
+			// skips deleted circles
+			if (this.circles[i] === null) {
+				continue;
+			}
+		
+			// big circles  cleanup
+			if (this.circles[i].radius > this.MAX_RADIUS) {
+				document.getElementById('frame').removeChild(this.circles[i].object);
+				this.circles[i] = null;
+			}
+			else {
+				// updates circles
+				this.circles[i].radius += this.RADIAL_VEL * this.TIMESTEP;
+				this.circles[i].object.setAttribute('r', this.circles[i].radius);
+				var color = Math.floor((1 - (this.circles[i].radius / this.MAX_RADIUS)) * 15.99);
+				color = color * 256 + color * 16 + color;
+				this.circles[i].object.setAttribute('stroke', '#' + color.toString(16));
+			}
+		}
+	};
+	
+	SPK_APP.step = function() {
+		if (SPK_APP.stepCount % SPK_APP.STEPS_BY_CIRCLE == 0) {
+			SPK_APP.createNewCircle();
+		}
+		SPK_APP.updateAllCircles();
+		SPK_APP.stepCount++;
+		setTimeout(SPK_APP.step,  SPK_APP.TIMESTEP * 1000);
+	};
+	
+	SPK_APP.onLoad = function() {
+		this.stepCount = 0;
+		this.circles = [];
+		setTimeout(SPK_APP.step, SPK_APP.TIMESTEP * 1000);
+	};
+	]]></script>
+	<g id="frame">
+		<rect id="frameBackground" x="0" y="0" width="350" height="350"
+		 stroke-width="0" fill="#000" />
+	</g>
+</svg>
