@@ -8,69 +8,52 @@
 	SPK_APP.HEIGHT = 350;
 	
 	SPK_APP.MAX_RADIUS = 150;
-	SPK_APP.RADIAL_VEL = 40;
+	SPK_APP.AVG_RADIAL_VEL = 40;
+	SPK_APP.DELTA_RADIAL_VEL = 10;
 	SPK_APP.TIMESTEP = 0.1;
-	SPK_APP.STEPS_BY_CIRCLE = 6;
+	SPK_APP.PARTICLE_RADIUS = 5;
 	
 	SPK_APP.SVG_NS = 'http://www.w3.org/2000/svg';
 	
-	SPK_APP.createNewCircle = function() {
-		// searches for the first empty place
-		var i = 0;
-		for (; i < this.circles.length; i++) {
-			if (this.circles[i] === null) {
-				break;
-			}
-		}
-		
-		// creates the new circle
-		this.circles[i] = {
-			radius: 0,
-			object: document.createElementNS(this.SVG_NS, 'circle')
+	SPK_APP.launchParticles = function() {
+		this.particles[this.particles.length] = {
+			x: 0,
+			y: 0,
+			vx: 10,
+			vy: 10,
+			object: document.createElementNS(SPK_APP.SVG_NS, 'circle')
 		};
-		this.circles[i].object.setAttribute('cx', this.WIDTH / 2);
-		this.circles[i].object.setAttribute('cy', this.HEIGHT / 2);
-		this.circles[i].object.setAttribute('r', 0);
-		this.circles[i].object.setAttribute('stroke', 'white');
-		this.circles[i].object.setAttribute('stroke-width', 2);
-		document.getElementById('frame').appendChild(this.circles[i].object);
+		var p = this.particles[this.particles.length - 1];
+		p.object.setAttribute('cx', p.x);
+		p.object.setAttribute('cy', p.y);
+		p.object.setAttribute('r', SPK_APP.PARTICLE_RADIUS);
+		p.object.setAttribute('fill', '#fff');
+		document.getElementById('frame').appendChild(p.object);
 	};
 	
-	SPK_APP.updateAllCircles = function() {
-		for (var i = 0; i < this.circles.length; i++) {
-			// skips deleted circles
-			if (this.circles[i] === null) {
+	SPK_APP.updateParticles = function() {
+		for (var p in this.particles) {
+			if (Math.sqrt(p.x * p.x + p.y * p.y) > this.MAX_RADIUS) {
+				p = null;
+			}
+			if (p === null) {
 				continue;
 			}
-		
-			// big circles  cleanup
-			if (this.circles[i].radius > this.MAX_RADIUS) {
-				document.getElementById('frame').removeChild(this.circles[i].object);
-				this.circles[i] = null;
-			}
-			else {
-				// updates circles
-				this.circles[i].radius += this.RADIAL_VEL * this.TIMESTEP;
-				this.circles[i].object.setAttribute('r', this.circles[i].radius);
-				var color = Math.floor((1 - (this.circles[i].radius / this.MAX_RADIUS)) * 15.99);
-				color = color * 256 + color * 16 + color;
-				this.circles[i].object.setAttribute('stroke', '#' + color.toString(16));
-			}
+			p.x += p.vx * this.TIMESTEP;
+			p.y += p.vy * this.TIMESTEP;
+			p.object.setAttribute('cx', p.x);
+			p.object.setAttribute('cy', p.y);
 		}
 	};
 	
 	SPK_APP.step = function() {
-		if (SPK_APP.stepCount % SPK_APP.STEPS_BY_CIRCLE == 0) {
-			SPK_APP.createNewCircle();
-		}
-		SPK_APP.updateAllCircles();
-		SPK_APP.stepCount++;
+		SPK_APP.launchParticles();
+		SPK_APP.updateParticles();
 		setTimeout(SPK_APP.step,  SPK_APP.TIMESTEP * 1000);
 	};
 	
 	SPK_APP.onLoad = function() {
-		this.stepCount = 0;
-		this.circles = [];
+		this.particles = [];
 		setTimeout(SPK_APP.step, SPK_APP.TIMESTEP * 1000);
 	};
 	]]></script>
