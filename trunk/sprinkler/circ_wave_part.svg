@@ -4,23 +4,31 @@
 	<script><![CDATA[
 	var SPK_APP = {};
 	
-	SPK_APP.WIDTH = 350;
-	SPK_APP.HEIGHT = 350;
+	SPK_APP.CX = 150;
+	SPK_APP.CY = 150;
+	SPK_APP.WIDTH = 300;
+	SPK_APP.HEIGHT = 300;
 	
-	SPK_APP.MAX_RADIUS = 150;
+	SPK_APP.MAX_RADIUS = 100;
 	SPK_APP.AVG_RADIAL_VEL = 40;
 	SPK_APP.DELTA_RADIAL_VEL = 10;
 	SPK_APP.TIMESTEP = 0.1;
-	SPK_APP.PARTICLE_RADIUS = 5;
+	SPK_APP.PARTICLE_RADIUS = 1;
 	
 	SPK_APP.SVG_NS = 'http://www.w3.org/2000/svg';
 	
-	SPK_APP.launchParticles = function() {
+	SPK_APP.launchParticle = function() {
+		var i = 0;
+		for (; i < this.particles.length; i++) {
+			if (this.particles[i] === null) {
+				break;
+			}
+		}
 		this.particles[this.particles.length] = {
-			x: 0,
-			y: 0,
-			vx: 10,
-			vy: 10,
+			x: this.CX,
+			y: this.CY,
+			vx: Math.random() * 200 - 100,
+			vy: Math.random() * 200 - 100,
 			object: document.createElementNS(SPK_APP.SVG_NS, 'circle')
 		};
 		var p = this.particles[this.particles.length - 1];
@@ -32,11 +40,16 @@
 	};
 	
 	SPK_APP.updateParticles = function() {
-		for (var p in this.particles) {
-			if (Math.sqrt(p.x * p.x + p.y * p.y) > this.MAX_RADIUS) {
-				p = null;
-			}
+		for (var i = 0; i < this.particles.length; i++) {
+			var p = this.particles[i];
 			if (p === null) {
+				continue;
+			}
+			var dx = p.x - this.CX;
+			var dy = p.y - this.CY;
+			if (Math.sqrt(dx * dx + dy * dy) > this.MAX_RADIUS) {
+				document.getElementById('frame').removeChild(p.object);
+				this.particles[i] = null;
 				continue;
 			}
 			p.x += p.vx * this.TIMESTEP;
@@ -47,7 +60,9 @@
 	};
 	
 	SPK_APP.step = function() {
-		SPK_APP.launchParticles();
+		for (var i = 0; i < 10; i++) {
+			SPK_APP.launchParticle();
+		}
 		SPK_APP.updateParticles();
 		setTimeout(SPK_APP.step,  SPK_APP.TIMESTEP * 1000);
 	};
@@ -58,7 +73,7 @@
 	};
 	]]></script>
 	<g id="frame">
-		<rect id="frameBackground" x="0" y="0" width="350" height="350"
+		<rect id="frameBackground" x="0" y="0" width="300" height="300"
 		 stroke-width="0" fill="#000" />
 	</g>
 </svg>
