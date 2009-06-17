@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+ xmlns:xlink="http://www.w3.org/1999/xlink"
+ onload="HC_APP.onLoad();"> 
+	<script><![CDATA[
+	var HC_APP = {};
+	
+	HC_APP.onLoad = function() {
+		;
+	}
+	]]></script>
+	<defs>
+	</defs>
+	<g id="frame">
+		<rect id="frameBackground" x="0" y="0" width="370" height="390"
+		 stroke-width="0" fill="#777" />
+		<text id="titleText" x="185" y="22" fill="#ccc"
+		 font-size="16" font-family="sans-serif" font-weight="bold" 
+		 text-anchor="middle"> 
+		HC
+		</text> 
+		<g id="area" transform="translate(10,30)">
+			<g id="background">
+				<rect id="areaBGRect" x="0" y="0" width="350" height="350"
+				 stroke-width="0" fill="#000000" />
+			</g>
+			<clipPath id="borderPath">
+				<rect x="0" y="0" width="350" height="350" />
+			</clipPath>
+			<g id="drawArea" clip-path="url(#borderPath)">
+				<rect x="340" y="0" width="25" height="25" 
+				 stroke-color="#fff" fill="#f00" />
+			</g>
+		</g>
+	</g>
+</svg>
