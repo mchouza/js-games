@@ -4,8 +4,28 @@
 	<script><![CDATA[
 	var HC_APP = {};
 	
+	HC_APP.makeUniverse = function() {
+		return {
+			player_ship: this.makePlayerShip([0, 0]),
+			enemy_ship: this.makeAIShip([10, 0]),
+			
+			controlStep: function(player_input) {
+			},
+			
+			physicsStep: function(dt) {
+			},
+			
+			graphicsStep: function() {
+			},
+			
+			step: function(player_input, dt) {
+				
+			},
+		};
+	}
+	
 	HC_APP.onLoad = function() {
-		;
+		this.universe = this.makeUniverse();
 	}
 	]]></script>
 	<defs>
