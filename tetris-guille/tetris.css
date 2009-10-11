@@ -1,0 +1,143 @@
+#container{
+	left: 0px;
+	top: 0px;
+	border: none;
+	width: 416px;
+	height: 576px;
+	background-color: black;
+	color: black;
+	border: none;
+}
+
+#info{
+	border: thin;
+	width: 200px;
+	height: 576px;
+	background-color: silver;
+	border: none;
+}
+
+#blank{
+	height: 30px;
+}
+
+#blank2{
+	height: 250px;
+}
+
+#stats{
+	width: 130px;
+	height: 180px;
+	padding-bottom: auto;
+	padding-top: auto;
+	margin-left: auto;
+	margin-right: auto;
+	border-style: inset;
+	background-color: #808080;
+}
+
+div.divInfo{
+	width: 100px;
+	margin-top: 30px;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#preview{
+	margin-bottom: 60px;
+	margin-left: auto;
+	margin-right: auto;
+	width: 80px;
+	height: 140px;
+}
+
+#lblPreview{
+	font-family: Arial;
+	font-size: small;
+}
+
+#next{
+	margin-left: auto;
+	margin-right: auto;	
+	width: 80px;
+	height: 80px;
+	border: inset;
+	background-color: black;
+}
+
+#holder{
+	padding: 0px;
+	border-color: white;
+	border-style: solid;
+	border-width: thin;
+}
+
+#title{
+	font-family: Arial;
+	font-size: xx-large;
+	color: blue;
+	text-align: center;
+	background-color: white;
+	display: block;
+	width: 624px;
+}
+
+#footer{
+	font-family: Arial;
+	font-size: small;
+	color: blue;
+	text-align: center;
+	background-color: white;
+	display: block;
+	width: 624px;
+}
+
+
+tr{
+	margin: 0px;
+	padding: 0px;
+}
+
+td{
+	margin: 0px;
+	padding: 0px;
+}
+
+div.block{
+	width: 16px;
+	height: 16px;
+	background-color: red;
+	position: absolute;
+	border-color: white;
+	border-width: thin;
+	border-style: outset;
+}
+
+label.lbl{
+	font-weight: bold;
+	text-align: left;
+}
+
+label.val{
+	text-align: right;
+}
+
+div.buttons{
+	margin-top: 20px;
+	margin-left:auto;
+	margin-right:auto;
+	width: 115px;
+	background-color: black;
+}
+
+#btnStart{
+	font-weight: bold;
+}
+
+body{
+	margin: 0px;
+	padding: 0px;
+	background-color: #008080;
+}
+
+

@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<title>Tetris!</title>
+		<link rel="stylesheet" type="text/css" href="tetris.css" />
+	</head>
+	<body>
+		<div id="title">Tetris!</div>
+		<table id="holder">
+			<tr>
+				<td>
+					<div id="container"/>			
+				</td>
+				<td>
+					<div id="info">
+						<div id="blank"></div>
+						<div id="preview">
+							<label id="lblPreview">Next</label>
+							<div id="next"></div>
+						</div>
+						<div id="blank2">
+							<div id= "stats">
+								<div class= "divInfo">
+									<label class="lbl" id="lblLevel">Level: </label><label class="val" id="level"></label>
+								</div>
+								
+								<div class= "divInfo">
+									<label class= "lbl" id="lblPoints">Points: </label><label class="val" id="points"></label>
+								</div>
+								
+								<div class= "divInfo">
+									<label class="lbl" id="lblLines">Lines: </label><label class="val" id="lines"></label>
+								</div>
+							</div>
+						</div>
+						<div class="buttons">
+							<table>
+								<tr>
+									<td><input type="button" value="Start" id="btnStart"/></td>
+									<td><input type="button" value="Stop" id="btnStop"/></td>
+								</tr>
+							</table>
+						</div>
+					</div>
+				</td>
+			</tr>
+		</table>
+		<div id="footer">2009 - Guillermo Luis Frias</div>	
+		<script type="text/javascript" src="jquery-1.3.2.min.js"></script>
+		<script type="text/javascript" src="blocks.js"></script>
+		<script type="text/javascript" src="shapes.js"></script>
+		<script type="text/javascript" src="stats.js"></script>
+		<script type="text/javascript" src="grid.js"></script>
+		<script type="text/javascript" src="tetris.js"></script>
+	</body>
+</html>
