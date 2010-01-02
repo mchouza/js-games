@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SAT Solver</title>
+	<script src="dpll.js"></script>
+	<script>
+	function $(id) {
+		return document.getElementById(id);
+	}
+	
+	function getClauses(txt) {
+		var clausesLines = $('problemTxt').value.split('\n');
+		var clauses = [];
+		for (var i = 0; i < clausesLines.length; i++) {
+			if (!clausesLines[i]) {
+				continue;
+			}
+			var newClause = [];
+			var clauseFields = clausesLines[i].split(' ');
+			for (var j = 0; j < clauseFields.length; j++) {
+				var cf = parseInt(clauseFields[j]);
+				if (cf !== cf) {
+					continue;
+				}
+				newClause.push(cf);
+			}
+			if (newClause.length !== 0) {
+				clauses.push(newClause);
+			}
+		}
+		return clauses;
+	}
+	
+	function getPrintableClauses(clauses) {
+		var clausesLines = [];
+		for (var i = 0; i < clauses.length; i++) {
+			clausesLines.push(clauses[i].join(' '));
+		}
+		return clausesLines.join('\n');
+	}
+	
+	function getPrintableSol(sol) {
+		var txt;
+		if (!sol[0]) {
+			return 'UNSATISFIABLE';
+		}
+		txt = 'SATISFIABLE\n';
+		for (var v in sol[1]) {
+			txt += v;
+			txt += ' ';
+		}
+		return txt;
+	}
+	
+	function solve() {
+		var clauses;
+		clauses = getClauses($('problemTxt').value);
+		$('problemTxt').value = getPrintableClauses(clauses);
+		$('solutionTxt').innerHTML = getPrintableSol(dpll(clauses));
+	}
+	</script>
+</head>
+<body>
+	<h1>SAT Solver</h1>
+	Enter a series of clauses (one for each line):
+	<br>
+	<textarea id="problemTxt"></textarea>
+	<br>
+	<input id="solveBtn" type="submit" value="Solve">
+	<br>
+	Solution:
+	<br>
+	<pre id="solutionTxt"></pre>
+	<script>
+	$('solveBtn').onclick = solve;
+	</script>
+</body>
+</html>
