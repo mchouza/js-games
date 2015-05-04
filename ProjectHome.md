@@ -1,0 +1,1 @@
+It's a collection of varied JavaScript games and demos.
